@@ -1,0 +1,69 @@
+# ==========================================
+# C++ / CMake / vcpkg / Visual Studio .gitignore
+# ==========================================
+
+# Build directories & outputs
+build/
+bin/
+out/
+target/
+cmake-build-*/
+
+# CMake generated files
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+CTestTestfile.cmake
+Testing/
+compile_commands.json
+
+# Object & Binary files
+*.obj
+*.o
+*.lib
+*.a
+*.dll
+*.so
+*.dylib
+*.exe
+*.exp
+
+# Debugging, Symbols & Intermediate Compiler outputs
+*.pdb
+*.ilk
+*.idb
+*.tlog
+*.recipe
+*.i
+*.s
+*.dmp
+*.dump
+
+# vcpkg local installations & caches
+vcpkg_installed/
+.vcpkg/
+
+# Visual Studio & MSBuild
+.vs/
+*.sln.docstates
+*.suo
+*.user
+*.userosv
+*.vcxproj.user
+*.ncb
+*.opendb
+*.VC.db
+
+# VS Code & JetBrains IDE
+.vscode/
+.idea/
+
+# Docker persistent data & logs
+postgres_data/
+*.log
+
+# OS-specific temporary files
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.DS_Store

@@ -1,0 +1,16 @@
+{
+  "name": "backend-server",
+  "version-string": "1.0.0",
+  "dependencies": [
+    {
+      "name": "drogon",
+      "features": [
+        "postgres",
+        "orm"
+      ]
+    },
+    {
+      "name": "rapidjson"
+    }
+  ]
+}

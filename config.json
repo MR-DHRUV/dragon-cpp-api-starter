@@ -1,0 +1,43 @@
+{
+  "listeners": [
+    {
+      "address": "0.0.0.0",
+      "port": 8080,
+      "https": false,
+      "reuse_port": true
+    }
+  ],
+  "db_clients": [
+    {
+      "name": "default",
+      "rdbms": "postgresql",
+      "host": "127.0.0.1",
+      "port": 5432,
+      "dbname": "api_db",
+      "user": "api_user",
+      "passwd": "api_secret_pass",
+      "is_fast": false,
+      "connection_number": 20,
+      "timeout": -1
+    }
+  ],
+  "app": {
+    "threads_num": 4,
+    "enable_session": false,
+    "use_sendfile": true,
+    "use_gzip": false,
+    "client_max_body_size": "1M",
+    "client_max_memory_body_size": "64K",
+    "max_connection_num": 100000,
+    "keepalive_requests_number": 0,
+    "pipelining_requests_number": 0,
+    "server_header_field": "drogon-rapidjson-api",
+    "enable_date_header": true,
+    "enable_server_header": true
+  },
+  "logging": {
+    "log_path": "",
+    "log_level": "INFO",
+    "display_local_time": true
+  }
+}
