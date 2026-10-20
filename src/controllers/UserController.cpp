@@ -2,16 +2,19 @@
 #include "api/services/UserService.h"
 #include "api/common/ApiResponse.h"
 #include "api/common/RapidJsonHelper.h"
+#include "api/otel/ScopedSpan.h"
 
 #include <charconv>
 
 namespace api::controllers {
 
 void UserController::checkUsernameAvailability(
-    const drogon::HttpRequestPtr& /*req*/,
+    const drogon::HttpRequestPtr& req,
     std::function<void(const drogon::HttpResponsePtr&)>&& callback,
     const std::string& username)
 {
+    auto span = req ? req->getAttributes()->get<otel::SpanPtr>("otel.span") : nullptr;
+
     services::UserService::instance().checkUsernameAvailability(
         username,
         [username, callback = std::move(callback)](bool queryOk, bool available, bool validFormat, const std::string& reason) {
@@ -51,7 +54,8 @@ void UserController::checkUsernameAvailability(
             }, available ? "Username is available" : "Username is already taken", drogon::k200OK);
 
             callback(resp);
-        });
+        },
+        span);
 }
 
 void UserController::checkUsernameQuery(
@@ -89,6 +93,8 @@ void UserController::getUsers(
         }
     }
 
+    auto span = req ? req->getAttributes()->get<otel::SpanPtr>("otel.span") : nullptr;
+
     services::UserService::instance().getAllUsers(
         limit, offset,
         [callback = std::move(callback)](bool ok, const std::vector<models::User>& users, const std::string& error) {
@@ -106,14 +112,17 @@ void UserController::getUsers(
             }, "Users retrieved successfully");
 
             callback(resp);
-        });
+        },
+        span);
 }
 
 void UserController::getUserById(
-    const drogon::HttpRequestPtr& /*req*/,
+    const drogon::HttpRequestPtr& req,
     std::function<void(const drogon::HttpResponsePtr&)>&& callback,
     int64_t id) 
 {
+    auto span = req ? req->getAttributes()->get<otel::SpanPtr>("otel.span") : nullptr;
+
     services::UserService::instance().getUserById(
         id,
         [id, callback = std::move(callback)](bool ok, const std::optional<models::User>& user, const std::string& error) {
@@ -131,7 +140,8 @@ void UserController::getUserById(
             }, "User retrieved successfully");
 
             callback(resp);
-        });
+        },
+        span);
 }
 
 void UserController::createUser(
@@ -144,6 +154,8 @@ void UserController::createUser(
         callback(common::ApiResponse::error(drogon::k400BadRequest, errorMsg));
         return;
     }
+
+    auto span = req ? req->getAttributes()->get<otel::SpanPtr>("otel.span") : nullptr;
 
     services::UserService::instance().createUser(
         *dto,
@@ -162,7 +174,8 @@ void UserController::createUser(
             }, "User created successfully", drogon::k201Created);
 
             callback(resp);
-        });
+        },
+        span);
 }
 
 void UserController::updateUser(
@@ -176,6 +189,8 @@ void UserController::updateUser(
         callback(common::ApiResponse::error(drogon::k400BadRequest, errorMsg));
         return;
     }
+
+    auto span = req ? req->getAttributes()->get<otel::SpanPtr>("otel.span") : nullptr;
 
     services::UserService::instance().updateUser(
         id, *dto,
@@ -194,14 +209,17 @@ void UserController::updateUser(
             }, "User updated successfully");
 
             callback(resp);
-        });
+        },
+        span);
 }
 
 void UserController::deleteUser(
-    const drogon::HttpRequestPtr& /*req*/,
+    const drogon::HttpRequestPtr& req,
     std::function<void(const drogon::HttpResponsePtr&)>&& callback,
     int64_t id) 
 {
+    auto span = req ? req->getAttributes()->get<otel::SpanPtr>("otel.span") : nullptr;
+
     services::UserService::instance().deleteUser(
         id,
         [id, callback = std::move(callback)](bool ok, bool found, const std::string& error) {
@@ -215,7 +233,8 @@ void UserController::deleteUser(
             }
 
             callback(common::ApiResponse::success("User deleted successfully"));
-        });
+        },
+        span);
 }
 
 } // namespace api::controllers

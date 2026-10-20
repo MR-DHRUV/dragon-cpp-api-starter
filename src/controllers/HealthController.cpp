@@ -2,6 +2,7 @@
 #include "api/db/DatabaseManager.h"
 #include "api/common/ApiResponse.h"
 #include "api/common/RapidJsonHelper.h"
+#include "api/otel/ScopedSpan.h"
 
 #include <drogon/drogon.h>
 #include <chrono>
@@ -12,9 +13,11 @@ namespace api::controllers {
 static const auto g_startTime = std::chrono::steady_clock::now();
 
 void HealthController::healthCheck(
-    const drogon::HttpRequestPtr& /*req*/,
+    const drogon::HttpRequestPtr& req,
     std::function<void(const drogon::HttpResponsePtr&)>&& callback) 
 {
+    auto span = req ? req->getAttributes()->get<otel::SpanPtr>("otel.span") : nullptr;
+
     db::DatabaseManager::instance().checkHealth(
         [callback = std::move(callback)](bool healthy, double latencyMs, const std::string& message) {
             auto now = std::chrono::steady_clock::now();
@@ -50,7 +53,8 @@ void HealthController::healthCheck(
             );
 
             callback(resp);
-        });
+        },
+        span);
 }
 
 void HealthController::ping(

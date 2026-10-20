@@ -1,4 +1,4 @@
-.PHONY: help dev build run test test-unit test-api db stop-db migrate migrate-up migrate-down clean
+.PHONY: help dev build run test test-unit test-api db stop-db obs migrate migrate-up migrate-down clean
 
 BUILD_DIR  ?= build
 BUILD_TYPE ?= Release
@@ -42,8 +42,9 @@ help:
 	@echo   make test       - Run all unit and integration tests
 	@echo   make test-unit  - Run C++ unit tests
 	@echo   make test-api   - Run API endpoint integration tests
-	@echo   make db         - Start PostgreSQL database via Docker
-	@echo   make stop-db    - Stop PostgreSQL database
+	@echo   make db         - Start PostgreSQL & Observability stack via Docker
+	@echo   make obs        - View URLs for Jaeger, Prometheus, Grafana, and OTel
+	@echo   make stop-db    - Stop all containers (Postgres, OTel, Jaeger, Prometheus, Loki, Grafana)
 	@echo   make migrate      - Run pending database migrations (alias to migrate-up)
 	@echo   make migrate-up   - Apply all pending *.up.sql migrations
 	@echo   make migrate-down - Revert the latest applied migration (*.down.sql)
@@ -55,6 +56,18 @@ db:
 
 stop-db:
 	docker compose down
+
+obs:
+	@echo =========================================================
+	@echo                 Observability Stack URLs
+	@echo =========================================================
+	@echo   Grafana UI:       http://localhost:3000 (admin/admin)
+	@echo   Jaeger UI:        http://localhost:16686
+	@echo   Prometheus UI:    http://localhost:9090
+	@echo   Loki Ready:       http://localhost:3100/ready
+	@echo   OTel Collector:   http://localhost:4318 (HTTP) / 4317 (gRPC)
+	@echo   Metrics Endpoint: http://localhost:8080/api/v1/metrics
+	@echo =========================================================
 
 migrate: migrate-up
 

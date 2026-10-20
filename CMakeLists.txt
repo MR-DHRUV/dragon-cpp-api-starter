@@ -49,6 +49,10 @@ set(SOURCES
     src/services/UserService.cpp
     src/controllers/HealthController.cpp
     src/controllers/UserController.cpp
+    src/controllers/MetricsController.cpp
+    src/otel/OtelSpan.cpp
+    src/otel/OtelMetrics.cpp
+    src/otel/OtelManager.cpp
 )
 
 # Executable target
@@ -91,6 +95,8 @@ add_custom_command(
 # Unit test executable target
 add_executable(unit_tests 
     tests/test_rapidjson_helper.cpp
+    src/otel/OtelSpan.cpp
+    src/otel/OtelMetrics.cpp
 )
 target_link_libraries(unit_tests
     PRIVATE

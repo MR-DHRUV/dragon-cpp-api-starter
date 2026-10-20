@@ -1,10 +1,12 @@
 #pragma once
 
 #include "api/models/User.h"
+#include "api/otel/ScopedSpan.h"
 #include <functional>
 #include <vector>
 #include <optional>
 #include <string>
+#include <memory>
 #include <drogon/HttpTypes.h>
 
 namespace api::services {
@@ -22,12 +24,12 @@ public:
     using AvailabilityCallback = std::function<void(bool queryOk, bool available, bool validFormat, const std::string& reason)>;
     using CreateUserCallback = std::function<void(bool ok, drogon::HttpStatusCode status, const std::optional<models::User>& user, const std::string& error)>;
 
-    void checkUsernameAvailability(const std::string& username, AvailabilityCallback cb);
-    void getAllUsers(size_t limit, size_t offset, UsersCallback cb);
-    void getUserById(int64_t id, SingleUserCallback cb);
-    void createUser(const models::CreateUserDto& dto, CreateUserCallback cb);
-    void updateUser(int64_t id, const models::UpdateUserDto& dto, SingleUserCallback cb);
-    void deleteUser(int64_t id, DeleteCallback cb);
+    void checkUsernameAvailability(const std::string& username, AvailabilityCallback cb, const otel::SpanPtr& parentSpan = nullptr);
+    void getAllUsers(size_t limit, size_t offset, UsersCallback cb, const otel::SpanPtr& parentSpan = nullptr);
+    void getUserById(int64_t id, SingleUserCallback cb, const otel::SpanPtr& parentSpan = nullptr);
+    void createUser(const models::CreateUserDto& dto, CreateUserCallback cb, const otel::SpanPtr& parentSpan = nullptr);
+    void updateUser(int64_t id, const models::UpdateUserDto& dto, SingleUserCallback cb, const otel::SpanPtr& parentSpan = nullptr);
+    void deleteUser(int64_t id, DeleteCallback cb, const otel::SpanPtr& parentSpan = nullptr);
 
 private:
     UserService() = default;

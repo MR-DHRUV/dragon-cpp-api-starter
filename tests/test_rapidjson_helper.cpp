@@ -1,5 +1,7 @@
-﻿#include "api/common/RapidJsonHelper.h"
+#include "api/common/RapidJsonHelper.h"
 #include "api/models/User.h"
+#include "api/otel/OtelSpan.h"
+#include "api/otel/OtelMetrics.h"
 #include <iostream>
 #include <cassert>
 
@@ -62,11 +64,52 @@ void testUsernameValidation() {
     std::cout << "[PASS] Username validation tests\n";
 }
 
+void testOtelTraceContext() {
+    std::string traceId = api::otel::TraceIdGenerator::generateTraceId();
+    std::string spanId = api::otel::TraceIdGenerator::generateSpanId();
+    assert(traceId.length() == 32);
+    assert(spanId.length() == 16);
+
+    std::string traceParent = api::otel::TraceIdGenerator::formatTraceParent(traceId, spanId);
+    assert(traceParent.rfind("00-" + traceId + "-" + spanId + "-01", 0) == 0);
+
+    std::string parsedTrace;
+    std::string parsedParent;
+    assert(api::otel::TraceIdGenerator::parseTraceParent(traceParent, parsedTrace, parsedParent));
+    assert(parsedTrace == traceId);
+    assert(parsedParent == spanId);
+
+    // Invalid format test
+    assert(!api::otel::TraceIdGenerator::parseTraceParent("invalid-header", parsedTrace, parsedParent));
+
+    std::cout << "[PASS] OpenTelemetry W3C TraceContext tests\n";
+}
+
+void testOtelMetrics() {
+    auto& metrics = api::otel::OtelMetrics::instance();
+    metrics.recordHttpRequest("GET", "/api/v1/ping", 200, 1.25);
+    metrics.recordHttpRequest("POST", "/api/v1/users", 201, 45.0);
+    metrics.recordDbQuery("SELECT 1", 0.5, true);
+
+    std::string promText = metrics.toPrometheusText();
+    assert(promText.find("http_requests_total{method=\"GET\",route=\"/api/v1/ping\",status=\"200\"} 1") != std::string::npos);
+    assert(promText.find("http_request_duration_ms_bucket") != std::string::npos);
+    assert(promText.find("db_queries_total{operation=\"SELECT 1\",status=\"executed\"} 1") != std::string::npos);
+
+    std::string otlpJson = metrics.toOtlpJson("backend-server", "1.0.0");
+    assert(otlpJson.find("resourceMetrics") != std::string::npos);
+    assert(otlpJson.find("http.server.requests") != std::string::npos);
+
+    std::cout << "[PASS] OpenTelemetry metrics aggregation tests\n";
+}
+
 int main() {
     std::cout << "Running Unit Tests...\n";
     testJsonHelperParsing();
     testUserSerialization();
     testUsernameValidation();
+    testOtelTraceContext();
+    testOtelMetrics();
     std::cout << "All unit tests completed successfully!\n";
     return 0;
 }

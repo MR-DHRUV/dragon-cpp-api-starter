@@ -2,16 +2,21 @@
 #include <drogon/drogon.h>
 #include <trantor/utils/Logger.h>
 #include <iostream>
+#include <fstream>
 #include <csignal>
 #include <thread>
 #include <filesystem>
+#include <json/json.h>
 
 // Ensure controllers are linked
 #include "api/controllers/HealthController.h"
 #include "api/controllers/UserController.h"
+#include "api/controllers/MetricsController.h"
+#include "api/otel/OtelManager.h"
 
 void handleSignal(int signum) {
     LOG_INFO << "Received signal " << signum << ". Initiating graceful shutdown...";
+    api::otel::OtelManager::instance().shutdown();
     drogon::app().quit();
 }
 
@@ -59,6 +64,20 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    // Parse config root for OpenTelemetry initialization
+    try {
+        std::ifstream configFile(configPath);
+        Json::Value configRoot;
+        Json::CharReaderBuilder readerBuilder;
+        std::string errs;
+        if (Json::parseFromStream(readerBuilder, configFile, &configRoot, &errs)) {
+            api::otel::OtelManager::instance().initialize(configRoot);
+            api::otel::OtelManager::instance().setupDrogonHooks();
+        }
+    } catch (const std::exception& e) {
+        LOG_WARN << "Failed to parse OpenTelemetry section from config: " << e.what();
+    }
+
     unsigned int hardwareCores = std::thread::hardware_concurrency();
     size_t configThreads = drogon::app().getThreadNum();
     size_t activeThreads = (configThreads == 0) ? hardwareCores : configThreads;
@@ -67,6 +86,9 @@ int main(int argc, char* argv[]) {
     std::cout << "[INFO] CPU hardware concurrency detected: " << hardwareCores << " cores\n";
     std::cout << "[INFO] Worker threads (from config.json): " << activeThreads << " threads\n";
     std::cout << "[INFO] Drogon HTTP Server starting at http://0.0.0.0:8080\n";
+    std::cout << "[INFO] Observability endpoints:\n";
+    std::cout << "  - GET    /api/v1/metrics (Prometheus scrape)\n";
+    std::cout << "  - OTLP   http://127.0.0.1:4318 (Traces, Metrics, Logs)\n";
     std::cout << "[INFO] Available endpoints:\n";
     std::cout << "  - GET    /api/v1/health\n";
     std::cout << "  - GET    /api/v1/ping\n";
@@ -80,6 +102,8 @@ int main(int argc, char* argv[]) {
     std::cout << "=========================================================\n";
 
     drogon::app().run();
+
+    api::otel::OtelManager::instance().shutdown();
 
     std::cout << "[INFO] Server stopped gracefully.\n";
     return 0;
