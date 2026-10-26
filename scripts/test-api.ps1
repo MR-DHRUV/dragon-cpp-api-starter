@@ -1,4 +1,4 @@
-﻿param(
+param(
     [string]$BaseUrl = "http://localhost:8080"
 )
 
@@ -121,6 +121,11 @@ if ($createdUser -and $createdUser.data.id) {
     # Delete User
     Invoke-ApiTest -Name "Delete User" -Method "DELETE" -Endpoint "/api/v1/users/$userId"
 }
+
+# 4. API Documentation (Swagger / OpenAPI)
+Write-Host "`n--- Testing Swagger / OpenAPI Documentation ---" -ForegroundColor Yellow
+Invoke-ApiTest -Name "Swagger UI HTML" -Method "GET" -Endpoint "/docs"
+Invoke-ApiTest -Name "OpenAPI JSON Specification" -Method "GET" -Endpoint "/api/v1/openapi.json"
 
 Write-Host "`n==========================================" -ForegroundColor Green
 Write-Host "       Integration Tests Completed        " -ForegroundColor Green

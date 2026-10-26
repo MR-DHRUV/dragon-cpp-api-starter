@@ -1,4 +1,4 @@
-﻿#define _CRT_SECURE_NO_WARNINGS
+#define _CRT_SECURE_NO_WARNINGS
 #include <drogon/drogon.h>
 #include <trantor/utils/Logger.h>
 #include <iostream>
@@ -12,6 +12,7 @@
 #include "api/controllers/HealthController.h"
 #include "api/controllers/UserController.h"
 #include "api/controllers/MetricsController.h"
+#include "api/controllers/DocsController.h"
 #include "api/otel/OtelManager.h"
 
 void handleSignal(int signum) {
@@ -86,6 +87,9 @@ int main(int argc, char* argv[]) {
     std::cout << "[INFO] CPU hardware concurrency detected: " << hardwareCores << " cores\n";
     std::cout << "[INFO] Worker threads (from config.json): " << activeThreads << " threads\n";
     std::cout << "[INFO] Drogon HTTP Server starting at http://0.0.0.0:8080\n";
+    std::cout << "[INFO] Documentation & API Specs:\n";
+    std::cout << "  - Swagger UI:       http://localhost:8080/docs (or /swagger)\n";
+    std::cout << "  - OpenAPI Spec:     http://localhost:8080/api/v1/openapi.json\n";
     std::cout << "[INFO] Observability endpoints:\n";
     std::cout << "  - GET    /api/v1/metrics (Prometheus scrape)\n";
     std::cout << "  - OTLP   http://127.0.0.1:4318 (Traces, Metrics, Logs)\n";

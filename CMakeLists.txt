@@ -1,23 +1,32 @@
-﻿cmake_minimum_required(VERSION 3.22)
+cmake_minimum_required(VERSION 3.22)
 project(backend_server CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# Compiler optimization flags
+# Enforce config.json as single source of truth at compile time
+if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/config.json")
+    message(FATAL_ERROR "Configuration file 'config.json' not found in project root! It is required as the single source of truth.")
+endif()
+
+# Optimization and warning flags
 if(MSVC)
     add_compile_options(
         /W4
         /O2
         /Oi
         /Ot
-        /GL
         /Gy
-        /EHsc
-        /std:c++20
-        /Zc:__cplusplus
+        /GF
         /permissive-
+        /utf-8
+        /MP
+        /EHsc
+        /D_WIN32_WINNT=0x0A00
+        /DNOMINMAX
+        /DWIN32_LEAN_AND_MEAN
     )
     add_link_options(/OPT:REF /OPT:ICF)
 else()
@@ -50,6 +59,7 @@ set(SOURCES
     src/controllers/HealthController.cpp
     src/controllers/UserController.cpp
     src/controllers/MetricsController.cpp
+    src/controllers/DocsController.cpp
     src/otel/OtelSpan.cpp
     src/otel/OtelMetrics.cpp
     src/otel/OtelManager.cpp
